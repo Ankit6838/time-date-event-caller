@@ -40,20 +40,21 @@ export const OcTimePicker: FC<IOcTimePickerProps> = (props: IOcTimePickerProps) 
         dateTime.setMinutes(0);
     }
 
-    const useMilitaryDateTimeFormat =
-        typeof useMilitaryFormat !== 'undefined' ? useMilitaryFormat : false;
-
+    /*const useMilitaryDateTimeFormat =
+        typeof useMilitaryFormat !== 'undefined' ? useMilitaryFormat : false;*/
+    const useMilitaryDateTimeFormat = false;
     const fullHours = dateTime.getHours();
     let displayHours = dateTime.getHours();
     const mins = dateTime.getMinutes();
     const showAmPm = !useMilitaryDateTimeFormat;
-    const isPm = showAmPm && displayHours >= 12;
-    if (isPm) {
+    //const isPm = showAmPm ;
+    const [isPm, setIsPm] = useState<boolean>(!showAmPm);
+    /*if (isPm) {
         displayHours -= 12;
-    }
+    }*/
 
     if (showAmPm && displayHours === 0) {
-        displayHours = 12;
+        displayHours = 0;
     }
 
     let formattedHours = displayHours.toString();
@@ -71,24 +72,32 @@ export const OcTimePicker: FC<IOcTimePickerProps> = (props: IOcTimePickerProps) 
         // if the inputed/new value is defined and not null,
         // set the hours based on this new value
         if (!!e.target.value) {
-            const hrs =
-                !useMilitaryDateTimeFormat && parseInt(e.target.value) === 13
-                    ? 1
-                    : parseInt(e.target.value);
-
-            if (
-                (isPm && displayHours === 12 && hrs === 11) ||
-                (!isPm && displayHours === 12 && hrs === 1)
+            if (useMilitaryDateTimeFormat && ( parseInt(e.target.value) > 23 || parseInt(e.target.value) < 0 )
+                || (!useMilitaryDateTimeFormat && (parseInt(e.target.value) > 12) || parseInt(e.target.value) < 0 ) 
             ) {
+                d.setHours(displayHours);
+                //parseInt(e.target.value) < 0 ? 0 : d.setHours(displayHours);
+            }
+            else {
+                const hrs =
+                    !useMilitaryDateTimeFormat && parseInt(e.target.value) === 13
+                        ? 1
+                        : parseInt(e.target.value);
                 d.setHours(hrs);
-            } else if (isPm && displayHours === 12 && hrs === 1) {
-                d.setHours(hrs + 12);
-            } else if (!isPm && !useMilitaryDateTimeFormat && displayHours === 12 && hrs === 11) {
-                d.setHours(d.getHours() - 1);
-            } else if (useMilitaryDateTimeFormat || !isPm) {
-                d.setHours(hrs);
-            } else {
-                d.setHours(hrs + 12);
+                /*if (
+                    (isPm && displayHours === 12 && hrs === 11) ||
+                    (!isPm && displayHours === 12 && hrs === 1)
+                ) {
+                    d.setHours(hrs);
+                } else if (isPm && displayHours === 12 && hrs === 1) {
+                    d.setHours(hrs + 12);
+                } else if (!isPm && !useMilitaryDateTimeFormat && displayHours === 12 && hrs === 11) {
+                    d.setHours(d.getHours() - 1);
+                }else if (useMilitaryDateTimeFormat || !isPm) {
+                    d.setHours(hrs);
+                } else {
+                    d.setHours(hrs);
+                }*/
             }
         }
         // else, zero out the hours
@@ -103,7 +112,12 @@ export const OcTimePicker: FC<IOcTimePickerProps> = (props: IOcTimePickerProps) 
         // if the inputed/new value is defined and not null,
         // set the minutes based on this new value
         if (!!e.target.value) {
-            d.setMinutes(parseInt(e.target.value));
+            if (parseInt(e.target.value) > 59 || parseInt(e.target.value) < 0) {
+                d.setMinutes(dateTime.getMinutes());
+            }
+            else {
+                d.setMinutes(parseInt(e.target.value));
+            }
         }
         // else, zero out the minutes
         else {
@@ -112,17 +126,18 @@ export const OcTimePicker: FC<IOcTimePickerProps> = (props: IOcTimePickerProps) 
         update(d);
     };
 
-    const toggleAmPm = () => {
-        const d = new Date(dateTime);
-        if (isPm) {
+/*    const toggleAmPm = () => {
+        //const d = new Date(dateTime);
+        setIsPm(!isPm);
+        *//*if (isPm) {
             d.setHours(fullHours - 12);
         } else if (displayHours !== 12 || (displayHours === 12 && !useMilitaryDateTimeFormat)) {
             d.setHours(displayHours + 12);
         } else {
             d.setHours(0);
-        }
-        update(d);
-    };
+        }*//*
+        //update(d);
+    };*/
 
     let minHours = useMilitaryDateTimeFormat ? -1 : 0;
     if (minTime?.getDate() === dateTime.getDate() && minTime?.getMonth() === dateTime.getMonth()) {
@@ -199,14 +214,14 @@ export const OcTimePicker: FC<IOcTimePickerProps> = (props: IOcTimePickerProps) 
                         className={`${isPm ? 'am-pm-button' : 'am-pm-selected'}`}
                         title={AMString}
                         disabled={disabled ?? false}
-                        onClick={() => toggleAmPm()}>
+                        onClick={() => setIsPm(false)}>
                         {AMString}
                     </Button>
                     <Button
                         className={`${isPm ? 'am-pm-selected' : 'am-pm-button'}`}
                         title={PMString}
                         disabled={disabled ?? false}
-                        onClick={() => toggleAmPm()}>
+                        onClick={() => setIsPm(true)}>
                         {PMString}
                     </Button>
                 </div>
